@@ -1,6 +1,6 @@
 # docker-postfix
 
-[![CircleCI Status Badge](https://circleci.com/gh/sicz/docker-postfix.svg?style=shield&circle-token=)](https://circleci.com/gh/sicz/docker-postfix)
+[![CircleCI Status Badge](https://circleci.com/gh/sicz/docker-postfix.svg?style=shield&circle-token=1f9e38fe665c07d2ec434c9c64de9c27695cae1d)](https://circleci.com/gh/sicz/docker-postfix)
 
 **This project is not aimed at public consumption.
 It exists to serve as a single endpoint for SICZ containers.**
