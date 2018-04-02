@@ -1,0 +1,12 @@
+################################################################################
+# This file contains a list of local recipients aliases.
+#
+# http://www.postfix.org/aliases.5.html
+#
+
+# Person who should get root's mail. Don't receive mail as root!
+#root:		you
+
+# Basic system aliases -- these MUST be present
+MAILER-DAEMON:	postmaster
+postmaster:	root

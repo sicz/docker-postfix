@@ -1,0 +1,382 @@
+# /etc/postfix/main.cf
+
+### COMPATIBILITY ##############################################################
+
+# The compatibility_level determines what default settings Postfix
+# will use for main.cf and master.cf settings. These defaults will
+# change over time.
+#
+# To avoid breaking things, Postfix will use backwards-compatible
+# default settings and log where it uses those old backwards-compatible
+# default settings, until the system administrator has determined
+# if any backwards-compatible default settings need to be made
+# permanent in main.cf or master.cf.
+#
+# When this review is complete, update the compatibility_level setting
+# below as recommended in the RELEASE_NOTES file.
+#
+# The level below is what should be used with new (not upgrade) installs.
+#
+compatibility_level = 2
+
+### MY NAMES  ##################################################################
+
+# The myhostname parameter specifies the internet hostname of this
+# mail system. The default is to use the fully-qualified domain name
+# from gethostname(). $myhostname is used as a default value for many
+# other configuration parameters.
+#
+#myhostname = host.domain.tld
+
+# The mydomain parameter specifies the local internet domain name.
+# The default is to use $myhostname minus the first component.
+# $mydomain is used as a default value for many other configuration
+# parameters.
+#
+#mydomain = domain.tld
+
+# The myorigin parameter specifies the domain that locally-posted
+# mail appears to come from. The default is to append $myhostname,
+# which is fine for small sites.  If you run a domain with multiple
+# machines, you should (1) change this to $mydomain and (2) set up
+# a domain-wide alias database that aliases each user to
+# user@that.users.mailhost.
+#
+# For the sake of consistency between sender and recipient addresses,
+# myorigin also specifies the default domain name that is appended
+# to recipient addresses that have no @domain part.
+#
+myorigin = $myhostname
+#myorigin = $mydomain
+
+### SUBDOMAIN MATCHING #########################################################
+
+# A list of Postfix features where the pattern "example.com" also matches
+# subdomains of example.com, instead of requiring an explicit ".example.com"
+# pattern. This is planned backwards compatibility: eventually, all Postfix
+# features are expected to require explicit ".example.com" style patterns when
+# you really want to match subdomains.
+#
+# Fix the "do not list domain in BOTH" nags.
+#
+parent_domain_matches_subdomains =
+
+
+### TRUST AND RELAY CONTROL ####################################################
+
+# The mynetworks parameter specifies the list of "trusted" SMTP
+# clients that have more privileges than "strangers".
+#
+# In particular, "trusted" SMTP clients are allowed to relay mail
+# through Postfix.  See the smtpd_recipient_restrictions parameter
+# in postconf(5).
+#
+# You can specify the list of "trusted" network addresses by hand
+# or you can let Postfix do it for you (which is the default).
+#
+# By default (mynetworks_style = subnet), Postfix "trusts" SMTP
+# clients in the same IP subnetworks as the local machine.
+# On Linux, this does works correctly only with interfaces specified
+# with the "ifconfig" command.
+#
+# Specify "mynetworks_style = class" when Postfix should "trust" SMTP
+# clients in the same IP class A/B/C networks as the local machine.
+# Don't do this with a dialup site - it would cause Postfix to "trust"
+# your entire provider's network.  Instead, specify an explicit
+# mynetworks list by hand, as described below.
+#
+# Specify "mynetworks_style = host" when Postfix should "trust"
+# only the local machine.
+#
+#mynetworks_style = class
+#mynetworks_style = subnet
+#mynetworks_style = host
+#
+# Alternatively, you can specify the mynetworks list by hand, in
+# which case Postfix ignores the mynetworks_style setting.
+#
+# Specify an explicit list of network/netmask patterns, where the
+# mask specifies the number of bits in the network part of a host
+# address.
+#
+# You can also specify the absolute pathname of a pattern file instead
+# of listing the patterns here. Specify type:table for table-based lookups
+# (the value on the table right-hand side is not used).
+#
+#mynetworks = 168.100.189.0/28, 127.0.0.0/8
+#mynetworks = $config_directory/mynetworks
+#mynetworks = hash:/etc/postfix/network_table
+#mynetworks = 127.0.0.0/8
+#
+mynetworks =
+  127.0.0.0/8
+  [::ffff:127.0.0.0]/104
+  [::1]/128
+  /etc/postfix/mynetworks
+
+# The relay_domains parameter restricts what destinations this system will
+# relay mail to.  See the smtpd_recipient_restrictions description in
+# postconf(5) for detailed information.
+#
+# By default, Postfix relays mail
+# - from "trusted" clients (IP address matches $mynetworks) to any destination,
+# - from "untrusted" clients to destinations that match $relay_domains or
+#   subdomains thereof, except addresses with sender-specified routing.
+# The default relay_domains value is $mydestination.
+#
+# In addition to the above, the Postfix SMTP server by default accepts mail
+# that Postfix is final destination for:
+# - destinations that match $inet_interfaces or $proxy_interfaces,
+# - destinations that match $mydestination
+# - destinations that match $virtual_alias_domains,
+# - destinations that match $virtual_mailbox_domains.
+# These destinations do not need to be listed in $relay_domains.
+#
+# Specify a list of hosts or domains, /file/name patterns or type:name
+# lookup tables, separated by commas and/or whitespace.  Continue
+# long lines by starting the next line with whitespace. A file name
+# is replaced by its contents; a type:name table is matched when a
+# (parent) domain appears as lookup key.
+#
+# NOTE: Postfix will not automatically forward mail for domains that
+# list this system as their primary or backup MX host. See the
+# permit_mx_backup restriction description in postconf(5).
+#
+#relay_domains = $mydestination
+#
+# BECAUSE THIS IS AN EMAIL ROUTER DESIGNED FOR MAIL FORWARDING ONLY,
+# RELAYING TO $MYDESTINATION IS PROHIBITED
+#
+relay_domains = hash:/etc/postfix/relay_domains
+
+# Lookup tables with all valid addresses in the domains that match
+# $relay_domains. Specify @domain as a wild-card for domains that have
+# no valid recipient list, and become a source of backscatter mail:
+# Postfix accepts spam for non-existent recipients and then floods
+# innocent people with undeliverable mail. Technically, tables listed
+# with $relay_recipient_maps are used as lists: Postfix needs to know
+# only if a lookup string is found or not, but it does not use the result
+# from table lookup.
+#
+#relay_recipient_maps = ldap:/etc/postfix/relay_recipients.ldap
+
+# The relayhost parameter specifies the default host to send mail to
+# when no entry is matched in the optional transport(5) table. When
+# no relayhost is given, mail is routed directly to the destination.
+#
+# On an intranet, specify the organizational domain name. If your
+# internal DNS uses no MX records, specify the name of the intranet
+# gateway host instead.
+#
+# In the case of SMTP, specify a domain, host, host:port, [host]:port,
+# [address] or [address]:port; the form [host] turns off MX lookups.
+#
+# If you're connected via UUCP, see also the default_transport parameter.
+#
+#relayhost = relay.domain.tld
+
+# Lookup tables with mappings from recipient address to (message delivery
+# transport, next-hop destination)
+#
+transport_maps = hash:/etc/postfix/transport
+
+# The maximal size in bytes of a message, including envelope information.
+#
+message_size_limit = 20971520
+
+
+### LOCAL RECIPIENTS ###########################################################
+
+# BECAUSE THIS IS AN EMAIL ROUTER DESIGNED FOR MAIL FORWARDING ONLY,
+# LOCAL DELIVERY IS PROHIBITED
+
+# The mydestination parameter specifies the list of domains that this
+# machine considers itself the final destination for.
+mydestination =
+
+# Empty local_recipient_maps disables local delivery
+local_recipient_maps =
+
+# Be sure that local delivery is disabled
+local_transport = error:local delivery is disabled
+
+# Remove default nis:mail.aliases from alias_maps
+alias_maps = hash:/etc/postfix/aliases
+
+# Aliases for local recipients through virtual aliases
+virtual_alias_domains = $myhostname
+virtual_alias_maps = $alias_maps
+
+
+### NOTIFICATIONS ##############################################################
+
+# The list of error classes that are reported to the postmaster
+notify_classes =
+  resource
+  software
+
+
+### POSTSCREEN #################################################################
+
+# /etc/postfix/host_access.cidr lists IP addresses and networks which can not
+# talk to this host
+postscreen_access_list =
+  permit_mynetworks
+  cidr:/etc/postfix/host_access.cidr
+  permit
+
+# Drop the connection immediately
+postscreen_blacklist_action = drop
+
+
+### SMTPD ######################################################################
+
+# The inet_interfaces parameter specifies the network interface
+# addresses that this mail system receives mail on.  By default,
+# the software claims all active interfaces on the machine. The
+# parameter also controls delivery of mail to user@[ip.address].
+#
+# See also the proxy_interfaces parameter, for network addresses that
+# are forwarded to us via a proxy or network address translator.
+#
+# Note: you need to stop/start Postfix when this parameter changes.
+#
+inet_interfaces = all
+#inet_interfaces = $myhostname
+#inet_interfaces = $myhostname, localhost
+
+# The Internet protocols Postfix will attempt to use when making
+# or accepting connections. Specify one or more of "ipv4" or "ipv6",
+#separated by whitespace or commas. The form "all" is equivalent to
+# "ipv4, ipv6" or "ipv4", depending on whether the operating system
+# implements IPv6.
+#
+inet_protocols = all
+#inet_protocols = ipv4
+#inet_protocols = ipv6
+
+# The in_flow_delay configuration parameter implements mail input
+# flow control. This feature is turned on by default, although it
+# still needs further development (it's disabled on SCO UNIX due
+# to an SCO bug).
+#
+# A Postfix process will pause for $in_flow_delay seconds before
+# accepting a new message, when the message arrival rate exceeds the
+# message delivery rate. With the default 100 SMTP server process
+# limit, this limits the mail inflow to 100 messages a second more
+# than the number of messages delivered per second.
+#
+# Specify 0 to disable the feature. Valid delays are 0..10.
+#
+#in_flow_delay = 1s
+
+# Restrictions that the Postfix SMTP server applies in the context of a client
+# connection request.
+smtpd_client_restrictions =
+  #reject_unknown_client_hostname
+  #reject_rhsbl_client sbl.spamhaus.com
+  permit
+
+# Require that a remote SMTP client introduces itself with the HELO
+# or EHLO command before sending the MAIL command or other commands
+# that require EHLO negotiation.
+smtpd_helo_required = yes
+
+# Restrictions that the Postfix SMTP server applies in the context of a client
+# HELO command.
+smtpd_helo_restrictions =
+  permit_mynetworks
+  reject_invalid_helo_hostname
+  reject_non_fqdn_helo_hostname
+  #reject_unknown_helo_hostname
+  permit
+
+# Require that addresses received in SMTP MAIL FROM and RCPT TO commands are
+# enclosed with <>, and that those addresses do not contain RFC 822 style
+# comments or phrases. This stops mail from poorly written software.
+strict_rfc821_envelopes = yes
+
+# Restrictions that the Postfix SMTP server applies in the context of a client
+# MAIL FROM command.
+smtpd_sender_restrictions =
+  reject_non_fqdn_sender
+  #reject_unknown_sender_domain
+  permit_mynetworks
+  check_sender_access hash:/etc/postfix/sender_access
+  permit
+
+# Access restrictions for mail relay control that the Postfix SMTP server
+# applies in the context of the RCPT TO command.
+smtpd_relay_restrictions =
+  reject_non_fqdn_recipient
+  #reject_unknown_recipient_domain
+  permit_mynetworks
+  reject_unauth_destination
+  check_recipient_access hash:/etc/postfix/recipient_access
+  permit
+
+# Reject the request when the client sends SMTP commands ahead of time where it
+# is not allowed, or when the client sends SMTP commands ahead of time without
+# knowing that Postfix actually supports ESMTP command pipelining. This stops
+# mail from bulk mail software that improperly uses ESMTP command pipelining
+# in order to speed up deliveries.
+smtpd_data_restrictions =
+  reject_unauth_pipelining
+  permit
+
+# Rspamd integration
+#smtpd_milters = inet:localhost:11332
+milter_protocol = 6
+milter_mail_macros = i {mail_addr} {client_addr} {client_name} {auth_authen}
+# Skip mail without checks if something goes wrong
+milter_default_action = accept
+
+# smtpd TLS parameters
+smtpd_use_tls = no
+smtpd_tls_loglevel = 1
+smtpd_tls_security_level = may
+smtpd_enforce_tls = no
+smtpd_tls_protocols = !SSLv2 !SSLv3
+smtpd_tls_mandatory_protocols = !SSLv2 !SSLv3
+smtpd_tls_exclude_ciphers = aNULL
+smtpd_tls_mandatory_exclude_ciphers = aNULL
+smtpd_tls_cert_file = /etc/ssl/certs/server.crt
+smtpd_tls_key_file = /etc/ssl/private/server.key
+smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
+tls_preempt_cipherlist = yes
+
+
+### SMTP #######################################################################
+
+# Enable DNSSEC lookups.
+smtp_dns_support_level = enabled
+
+# Use the native service for hosts not found in the DNS.
+smtp_host_lookup = dns,native
+
+# smtp authentication
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_tls_security_options = noanonymous
+
+# smtp TLS parameters
+smtp_use_tls = no
+smtp_tls_loglevel = 1
+smtp_tls_security_level = may
+smtp_tls_protocols = !SSLv2 !SSLv3
+smtp_tls_mandatory_protocols = !SSLv2 !SSLv3
+smtp_tls_exclude_ciphers = aNULL
+smtp_tls_mandatory_exclude_ciphers = aNULL
+smtp_tls_cert_file = /etc/ssl/certs/server.crt
+smtp_tls_key_file = /etc/ssl/private/server.key
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+
+### TIMEOUTS ###################################################################
+
+# The time after which the sender receives a copy of the message headers
+# of mail that is still queued. To enable this feature, specify a non-zero
+# time value (an integral value plus an optional one-letter suffix that
+# specifies the time unit). Time units: s (seconds), m (minutes), h (hours),
+# d (days), w (weeks). The default time unit is h (hours).
+delay_warning_time = 4h

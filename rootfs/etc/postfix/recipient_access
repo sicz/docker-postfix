@@ -1,0 +1,11 @@
+################################################################################
+# This file contains a list of users and domains in access(5) format that
+# can not be recipient of messages relayed from Internet to internal mailservers.
+#
+# See http://www.postfix.org/postconf.5.html#smtpd_recipient_restrictions
+# and http://www.postfix.org/access.5.html
+#
+
+# Example:
+#example.com          REJECT
+#user@example.com     REJECT

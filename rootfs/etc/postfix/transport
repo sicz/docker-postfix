@@ -1,0 +1,11 @@
+################################################################################
+# This file contains a mappings from recipient address to message delivery
+# transport and next-hop destination.
+#
+# See http://www.postfix.org/postconf.5.html#transport_maps
+# and http://www.postfix.org/transport.5.html
+#
+
+# Examples:
+#example.com          relay:[smtp.example.com]
+#.example.com         relay:[smtp.example.com]

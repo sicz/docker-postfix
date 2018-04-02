@@ -1,0 +1,11 @@
+################################################################################
+# This file contains a list of hosts or domain names this system will relay
+# mail to.
+#
+# See http://www.postfix.org/postconf.5.html#relay_domains
+# and http://www.postfix.org/access.5.html
+#
+
+# Example:
+#example.com          RELAY
+#.example.com         RELAY

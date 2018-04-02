@@ -1,0 +1,38 @@
+#!/usr/bin/env /bin/bash
+#
+# https://gist.github.com/chrisnew/b0c1b8d310fc5ceaeac4
+#
+# You cannot start postfix in some foreground mode and
+# it's more or less important that docker doesn't kill
+# postfix and its chilren if you stop the container.
+#
+# Use this script with supervisord and it will take
+# care about starting and stopping postfix correctly.
+#
+# Supervisord config snippet for postfix-wrapper:
+#
+# [program:postfix]
+# process_name = postfix
+# command = /etc/postfix/postfix-wrapper
+# startsecs = 10
+# autorestart = true
+
+# Handle signals
+trap "postfix stop" SIGINT
+trap "postfix stop" SIGTERM
+trap "postfix reload" SIGHUP
+
+# Lets give syslog some time to start
+while [ ! -e /dev/log ]; do sleep 1; done
+
+# Start postfix
+postfix start
+
+# Lets give postfix some time to start
+while [ ! -f /var/spool/postfix/pid/master.pid ]; do sleep 1; done
+
+# Wait until postfix is dead (triggered by trap)
+POSTFIX_PID="$(cat /var/spool/postfix/pid/master.pid)"
+while kill -0 ${POSTFIX_PID}; do
+  sleep 1
+done

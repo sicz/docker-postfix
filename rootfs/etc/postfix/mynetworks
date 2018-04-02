@@ -1,0 +1,9 @@
+################################################################################
+# This file contains a list of trusted remote SMTP clients that can relay
+# messages to the Internet.
+#
+# See http://www.postfix.org/postconf.5.html#mynetworks
+#
+
+# Example:
+#192.0.2.0/24

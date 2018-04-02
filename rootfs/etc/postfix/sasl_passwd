@@ -1,0 +1,11 @@
+################################################################################
+# SMTP client lookup tables with one username:password entry per remote
+# hostname or next-hop domain. If no username:password entry is found,
+# then the Postfix SMTP client will not attempt to authenticate to the
+# remote host.
+#
+# See http://www.postfix.org/postconf.5.html#smtp_sasl_password_maps
+#
+
+# Examples:
+#smtp.example.com               user:password
